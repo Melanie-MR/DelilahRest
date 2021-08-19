@@ -15,7 +15,10 @@ const Products = sequelize.define("products",
         },
         description:{
             type: DataTypes.STRING,
-        }
+        },
+    }, 
+    {
+        timestamps: false
     }
 )
 module.exports = Products

@@ -1,7 +1,7 @@
 const Sequelize = require("sequelize");
 
 //DB connection
-const dialect = "mysql"; //process.env.dialect    clase 39  
+const dialect = "mysql"; 
 const user = "root";
 const host = "localhost";
 const port = 3306;

@@ -24,13 +24,27 @@ app.get("/products/:id", (req, res) => {
     res.send("<b>Hellos world!</b>" + id);
 });
 
-app.post("/products", (req, res) => {
+
+
+/*
+// Obtener lista de productos
+app.get('/dishes', (req, res) => {
+    const products =  Dishes.findAll().then((data) => {
+        console.log(data);
+        res.json({ message: data });
+    });
+});
+
+
+*/
+
+app.post("/products", async (req, res) => {
     let name = req.body.name
     let price = req.body.price
     let description = req.body.description
     
     try {
-        const newProduct = Products.create({
+        const newProduct = await Products.create({
             name: name,
             price: price,
             description: description
@@ -55,7 +69,7 @@ app.post("/products", (req, res) => {
     });
 });
 
-app.put('/products/:id', async (req, res) => {
+/*app.put('/products/:id', async (req, res) => {
     const id = req.params.id;
     const name = req.body.name;
     //Buscamos el id
