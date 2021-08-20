@@ -8,6 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 //IMPORTS MODELS
 const Products = require("./models/products");
+const Users = require("./models/users");
 
 //APP
 const app = express();
@@ -157,6 +158,43 @@ app.put("/products/:id", async  (req, res) => {
     }
 
 });*/
+
+//USERS
+
+//NEW USER
+/*app.post("/users", async (req, res) => {
+    let id = req.body.id
+    let first_name = req.body.first_name
+    let last_name= req.body.last_name
+    let email = req.body.email
+    
+    try {
+        const foundUser = await Users.findOne({where: {id:id}});
+        if (!foundUser) {
+        // User not found, create a new one
+            const newUser = await Users.create({
+                first_name: first_name,
+                last_name: last_name,
+                email: email
+            })
+            res.status(200).send({msg:'New user created successfully', newUser});  
+        } else{
+            res.status(404).send({msg: `This user already exist`});
+        }
+    }catch (error) {
+        res.status(400).send({msg:'Something happened ' + error});  
+    }
+});*/
+
+
+
+
+
+
+
+
+
+
 
 //SERVER
 app.listen(PORT, () => {

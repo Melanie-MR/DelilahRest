@@ -1,6 +1,19 @@
+/*Products*/
 CREATE TABLE IF NOT EXISTS `products` (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	name VARCHAR(50) NOT NULL,
     price DECIMAL(9,2) NOT NULL,
     description VARCHAR(200)
+) DEFAULT CHARSET = UTF8
+
+/*Users*/
+CREATE TABLE IF NOT EXISTS `users` (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    phone_number INT NOT NULL,
+    address VARCHAR(500) NOT NULL,
+    password VARCHAR(50) NOT NULL,
+    is_admin BOOLEAN
 ) DEFAULT CHARSET = UTF8
