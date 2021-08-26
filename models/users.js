@@ -7,11 +7,11 @@ const Users = sequelize.define("users",
             type: DataTypes.INTEGER,
             primaryKey: true,
         },
-        first_name:{
+        username:{
             type: DataTypes.STRING,
         },
-        last_name:{
-            type:DataTypes.STRING,
+        fullname:{
+            type: DataTypes.STRING,
         },
         email:{
             type: DataTypes.STRING,
@@ -33,4 +33,18 @@ const Users = sequelize.define("users",
         timestamps: false
     }
 )
+
+
+//To ask for all the users in the database
+const getAll = () => {
+    return new Promise((resolve,reject) => {
+        db.query('SELECT *FROM users', (err,rows) =>{
+            if (err) reject(err)
+            resolve(rows);
+        });
+    });
+};
+
+
+module.exports = {getAll: getAll}
 module.exports = Users

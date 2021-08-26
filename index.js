@@ -1,10 +1,15 @@
+require("dotenv").config()
+
 //IMPORTS
 const express = require("express"); 
+const bcrypt = require("bcryptjs"); 
+const jsonwebtoken = require("jsonwebtoken")
 const body_parser = require("body-parser");
-const cors = require("cors");
-const helmet = require("helmet"); 
+const cors = require("cors"); 
 const sequelize = require("./config/connection"); //import db connection
 const PORT = process.env.PORT || 3000;
+
+
 
 //IMPORTS MODELS
 const Products = require("./models/products");
@@ -14,7 +19,6 @@ const Users = require("./models/users");
 const app = express();
 
 app.use(cors());
-app.use(helmet());
 app.use(body_parser.urlencoded({ extended: false }));
 app.use(body_parser.json());
 
@@ -139,59 +143,103 @@ app.put("/products/:id", async  (req, res) => {
         res.status(400).send({msg:'Something happened ' + error});  
     }
 });
-   
-    ///Funciona, pero si el id no existe o esta vacio no hace nada ni devuelve error.
-/*app.put("/products/:id", async (req, res) => {
-    const id = req.params.id;
-    const name = req.body.name;
-    const objectToUpdate = {
-        name: 'New product',
-        price: 10,
-        description:'New description'
-        }
-    try {
-        Products.update(objectToUpdate, { where: { id: id}})
-        res.status(200).send({msg: `Product's name was updated`});
-
-    }catch (error) {
-        res.status(400).send({msg:'Something happened ' + error});  
-    }
-
-});*/
 
 //USERS
 
 //NEW USER
-/*app.post("/users", async (req, res) => {
-    let id = req.body.id
-    let first_name = req.body.first_name
-    let last_name= req.body.last_name
-    let email = req.body.email
-    
+app.post('/signup', validateSignup, validateUser, async(req, res) => {
+
+    const username = req.body.username;
+    const fullname = req.body.fullname;
+    const email = req.body.email;
+    const phone_number = req.body.phone_number;
+    const address = req.body.address;
+    const password = req.body.password;
+
     try {
-        const foundUser = await Users.findOne({where: {id:id}});
-        if (!foundUser) {
-        // User not found, create a new one
-            const newUser = await Users.create({
-                first_name: first_name,
-                last_name: last_name,
-                email: email
-            })
-            res.status(200).send({msg:'New user created successfully', newUser});  
-        } else{
-            res.status(404).send({msg: `This user already exist`});
-        }
-    }catch (error) {
+        const newUser = await Users.create({
+            username: username,
+            fullname : fullname,
+            email : email,
+            phone_number : phone_number,
+            address : address,
+            password : bcrypt.hashSync(password, 5)
+        })
+        res.status(201).send({msg:'User created successfully', newUser});  
+    } catch (error) {
         res.status(400).send({msg:'Something happened ' + error});  
     }
-});*/
+});
+
+app.post('/login', validateLogin, (req, res) => {
+    const username = req.body.username;
+    const email = req.body.email;
+    const password = req.body.password;
+    
+
+});
+
+/////////////////// Validate Functions
+
+async function validateLogin(req, res, next){
+    const username = req.body.username;
+    const email = req.body.email;
+    const password = req.body.password;
+
+    if (username == '' || email == ''){
+        res.status(400).send({msg:'Username or email required'});  
+    } else if ( password == '') {
+        res.status(400).send({msg:'Password required'});  
+    } 
+
+    const usernameExists = await Users.findOne({where: {username:username}});
+    const emailExists = await Users.findOne({where: {email:email}});
+
+    if (usernameExists) {
+        const registeredUser = usernameExists;
+    } else if (emailExists) {
+        const registeredUser = emailExists;
+    } else {
+        res.status(400).send({msg:'Username or email not exists'});  
+    }
+
+    const result = bcrypt.compareSync(password, registeredUser.password);
+
+    if (result){
+        next();
+    } else {
+        res.status(400).send({msg:'Password incorrect'});  
+    }
 
 
+}
 
+async function validateSignup(req, res, next){
+    if (req.body.username == '' || req.body.fullname == '' || req.body.email == '' ||
+        req.body.phone_number == '' || req.body.address == '' || req.body.password == '') {
+            
+        res.status(400).send({msg:'One or more mandatory fields are empty'});  
+    } else if (req.body.password.length < 8){
+        res.status(400).send({msg:'Password must have 8 digits'});  
 
+    } else  {
+        next()
+    }
+}
 
+async function validateUser(req, res, next){
+    const username = req.body.username;
+    const email = req.body.email;
 
+    const usernameExists = await Users.findOne({where: {username:username}});
+    const emailExists = await Users.findOne({where: {email:email}});
 
+    if (usernameExists || emailExists){
+        res.status(400).send({msg:'Username or email already exists'});  
+    } else {
+        next()
+    }
+}
 
 
 
