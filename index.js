@@ -241,9 +241,22 @@ async function validateUser(req, res, next){
     }
 }
 
+//JWT
+app.post('/auth', (req, res) =>{
+    const {username: password} = req.body;
+    //consu;tar bd y validar que existen tanto username como password
+    validateUser()
+    const user = {username:username};
+    const accesToken = generateAccessToken(user);
+    res.header('authorization', accessToken).json({
+        message: 'Usuario auteenticado',
+        token:token
+    });
 
-
-
+})
+function generateAccessToken(user){
+    return jsonwebtoken.sign(user, process.env.SECRET, {expiresIn: '5m'});
+}
 //SERVER
 app.listen(PORT, () => {
     console.log(`Server started to listen in port ${PORT}`);
