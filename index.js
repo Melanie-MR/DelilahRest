@@ -163,7 +163,7 @@ app.post('/signup', validateSignup, validateUser, async(req, res) => {
             email : email,
             phone_number : phone_number,
             address : address,
-            password : bcrypt.hashSync(password, 5)
+            password : bcrypt.hash(password, 5)
         })
         res.status(201).send({msg:'User created successfully', newUser});  
     } catch (error) {
@@ -171,14 +171,14 @@ app.post('/signup', validateSignup, validateUser, async(req, res) => {
     }
 });
 
-app.post('/login', validateLogin, (req, res) => {
+/*app.post('/login', validateLogin, (req, res) => {
     const username = req.body.username;
     const email = req.body.email;
     const password = req.body.password;
     
 
 });
-
+*/
 /////////////////// Validate Functions
 
 async function validateLogin(req, res, next){
@@ -190,21 +190,29 @@ async function validateLogin(req, res, next){
         res.status(400).send({msg:'Username or email required'});  
     } else if ( password == '') {
         res.status(400).send({msg:'Password required'});  
-    } 
-
-    const usernameExists = await Users.findOne({where: {username:username}});
-    const emailExists = await Users.findOne({where: {email:email}});
-
-    if (usernameExists) {
-        const registeredUser = usernameExists;
-    } else if (emailExists) {
-        const registeredUser = emailExists;
-    } else {
-        res.status(400).send({msg:'Username or email not exists'});  
     }
+    let usernameExists = false;
+    let emailExists = false;
+    if (username) {
+        usernameExists = await Users.findOne({where: {username:username}});
+    } else if (email) {
+        emailExists = await Users.findOne({where: {email:email}});
+    }
+    
 
-    const result = bcrypt.compareSync(password, registeredUser.password);
-
+    let registeredUser = null;
+    if (usernameExists) {
+        registeredUser = usernameExists;
+    } else if (emailExists) {
+        registeredUser = emailExists;
+    } else {
+        res.status(400).send({msg:'Username or email not exists'});
+    }
+    //const passwordHash = bcrypt.hashSync(password, 5);
+    console.log(password, registeredUser.password);
+    const result = bcrypt.compare(password, registeredUser.password);
+    //const result = passwordHash == registeredUser.password;
+    console.log(result)
     if (result){
         next();
     } else {
@@ -242,15 +250,15 @@ async function validateUser(req, res, next){
 }
 
 //JWT
-app.post('/auth', (req, res) =>{
-    const {username: password} = req.body;
+app.post('/auth', validateLogin, (req, res) =>{
+    const username = req.body.username;
+    const password = req.body.password; 
     //consu;tar bd y validar que existen tanto username como password
-    validateUser()
-    const user = {username:username};
-    const accesToken = generateAccessToken(user);
+    const user = {username:username, password:password};
+    const accessToken = generateAccessToken(user);
     res.header('authorization', accessToken).json({
-        message: 'Usuario auteenticado',
-        token:token
+        message: 'Usuario autenticado',
+        token:accessToken
     });
 
 })
