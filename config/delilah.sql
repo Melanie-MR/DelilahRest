@@ -19,5 +19,31 @@ CREATE TABLE IF NOT EXISTS `users` (
     is_admin BOOLEAN
 ) DEFAULT CHARSET = UTF8
 
---ALTER TABLE `users` 
---ADD COLUMN username VARCHAR(50) NOT NULL AFTER id;
+/*Orders*/
+
+DROP TABLE IF EXISTS `orders`;
+CREATE TABLE IF NOT EXISTS `orders` (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    order_status ENUM('new', 'confirmed', 'processing', 'sending', 'cancelled', 'delivered') DEFAULT 'new',
+    user_id INT NOT NULL,
+    payment_method ENUM('cash', 'credit_card', 'debit_card') DEFAULT 'cash',
+    order_date DATE NOT NULL DEFAULT NOW(),
+    description VARCHAR(200) NOT NULL,
+    address VARCHAR(500) NOT NULL,
+    total DECIMAL(9,2) NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES `users`(`id`)
+) DEFAULT CHARSET = UTF8
+
+/*Orders Details*/
+
+DROP TABLE IF EXISTS `order_products`;
+CREATE TABLE IF NOT EXISTS `order_products` (
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    product_id INT NOT NULL,
+    order_id INT NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    price DECIMAL(9,2) NOT NULL,
+    quantity INT NOT NULL,
+    FOREIGN KEY (product_id) REFERENCES `products`(`id`),
+    FOREIGN KEY (order_id) REFERENCES `orders`(`id`)
+) DEFAULT CHARSET = UTF8

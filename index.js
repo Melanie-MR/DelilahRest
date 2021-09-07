@@ -14,6 +14,7 @@ const PORT = process.env.PORT || 3000;
 //IMPORTS MODELS
 const Products = require("./models/products");
 const Users = require("./models/users");
+const Orders = require("./models/orders");
 
 //APP
 const app = express();
@@ -25,7 +26,7 @@ app.use(body_parser.json());
 //ENDPOINTS
 
 //Read ALL products.
-app.get('/products', async (req, res) => {
+app.get('/products', authUser, async (req, res) => {
     try {
         const products =  await Products.findAll()
         res.status(200).send({msg:'These are all the products', products});  
@@ -35,7 +36,7 @@ app.get('/products', async (req, res) => {
 });
 
 //Read one product.
-app.get("/products/:id", async (req, res) => {
+app.get("/products/:id", authUser, async (req, res) => {
     let id = req.params.id
     try {
         const products =  await Products.findOne({
@@ -54,7 +55,7 @@ app.get("/products/:id", async (req, res) => {
 });
 
 //Create product
-app.post("/products", async (req, res) => {
+app.post("/products", authUser, isAdmin, async (req, res) => {
     let name = req.body.name
     let price = req.body.price
     let description = req.body.description
@@ -72,7 +73,7 @@ app.post("/products", async (req, res) => {
 });
 
 //Delete product by id
-app.delete("/products/:id", async (req, res) => {
+app.delete("/products/:id", authUser, isAdmin, async (req, res) => { 
     let id = req.params.id
     try {
         const status =  await Products.destroy({
@@ -91,27 +92,9 @@ app.delete("/products/:id", async (req, res) => {
 });
 
 
-//Create product
-app.post("/products", async (req, res) => {
-    let name = req.body.name
-    let price = req.body.price
-    let description = req.body.description
-    
-    try {
-        const newProduct = await Products.create({
-            name: name,
-            price: price,
-            description: description
-        })
-        res.status(200).send({msg:'Product created successfully', newProduct});  
-    } catch (error) {
-        res.status(400).send({msg:'Something happened ' + error});  
-    }
-});
-
 //Update product
 
-app.put("/products/:id", async  (req, res) => {  
+app.put("/products/:id", authUser, isAdmin, async  (req, res) => {  
     const id = req.params.id;
     const name = req.body.name;
     let price = req.body.price;
@@ -171,14 +154,7 @@ app.post('/signup', validateSignup, validateUser, async(req, res) => {
     }
 });
 
-/*app.post('/login', validateLogin, (req, res) => {
-    const username = req.body.username;
-    const email = req.body.email;
-    const password = req.body.password;
-    
 
-});
-*/
 /////////////////// Validate Functions
 
 async function validateLogin(req, res, next){
@@ -208,11 +184,9 @@ async function validateLogin(req, res, next){
     } else {
         res.status(400).send({msg:'Username or email not exists'});
     }
-    //const passwordHash = bcrypt.hashSync(password, 5);
-    console.log(password, registeredUser.password);
+
     const result = bcrypt.compare(password, registeredUser.password);
-    //const result = passwordHash == registeredUser.password;
-    console.log(result)
+
     if (result){
         next();
     } else {
@@ -256,15 +230,55 @@ app.post('/auth', validateLogin, (req, res) =>{
     //consu;tar bd y validar que existen tanto username como password
     const user = {username:username, password:password};
     const accessToken = generateAccessToken(user);
-    res.header('authorization', accessToken).json({
+    res.send({
         message: 'Usuario autenticado',
         token:accessToken
     });
 
 })
+
 function generateAccessToken(user){
-    return jsonwebtoken.sign(user, process.env.SECRET, {expiresIn: '5m'});
+    return jsonwebtoken.sign(user, process.env.SECRET, {expiresIn: '50m'});
 }
+
+// es llamada para verificar que el usuario está logeado
+function authUser(req, res, next) {
+    try {
+        const token = req.headers.authorization.split(' ')[1];
+        const user = jsonwebtoken.verify(token, process.env.SECRET);
+        if (user) {
+            req.user = user;
+            return next();
+        }
+    } catch(err){
+        res.status(400).send({message:'Error validating user.', error: err});  
+    }
+}
+
+async function isAdmin (req, res, next) {
+    const username = req.user.username;
+    const user = await Users.findOne({where: {username: username}});
+
+    const isAdmin = user.is_admin;
+    if (isAdmin == true) { 
+        return next();
+    } else {
+        res.status(400).send({message:'User is not admin', is_admin: isAdmin});
+    }
+}
+
+
+////ORDERS
+//Read ALL products.
+app.get('/orders', async (req, res) => {
+    try {
+        const orders =  await Orders.findAll()
+        res.status(200).send({msg:'This is the order number blabla', orders});  
+    } catch (error) {
+        res.status(400).send({msg:'Something happened ' + error});  
+    }
+});
+
 //SERVER
 app.listen(PORT, () => {
     console.log(`Server started to listen in port ${PORT}`);
