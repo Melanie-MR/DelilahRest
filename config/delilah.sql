@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
     FOREIGN KEY (user_id) REFERENCES `users`(`id`)
 ) DEFAULT CHARSET = UTF8
 
-/*Orders Details*/
+/*Order Products*/
 
 DROP TABLE IF EXISTS `order_products`;
 CREATE TABLE IF NOT EXISTS `order_products` (
@@ -43,7 +43,6 @@ CREATE TABLE IF NOT EXISTS `order_products` (
     order_id INT NOT NULL,
     name VARCHAR(50) NOT NULL,
     price DECIMAL(9,2) NOT NULL,
-    quantity INT NOT NULL,
     FOREIGN KEY (product_id) REFERENCES `products`(`id`),
     FOREIGN KEY (order_id) REFERENCES `orders`(`id`)
 ) DEFAULT CHARSET = UTF8
