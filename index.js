@@ -15,6 +15,12 @@ const PORT = process.env.PORT || 3000;
 const Products = require("./models/products");
 const Users = require("./models/users");
 const Orders = require("./models/orders");
+const OrderProducts = require("./models/order_products");
+
+//Para probar la conexion de la base de datos sin endpoint
+//const orders = OrderProducts.findAll().then(a =>
+//    console.log("as",a)
+//);
 
 //APP
 const app = express();
@@ -93,25 +99,23 @@ app.delete("/products/:id", authUser, isAdmin, async (req, res) => {
 
 
 //Update product
-
 app.put("/products/:id", authUser, isAdmin, async  (req, res) => {  
     const id = req.params.id;
-    const name = req.body.name;
+    let name = req.body.name;
     let price = req.body.price;
     let description = req.body.description;
 
     const objectToUpdate = {
-        name: 'Pruebaa',
-        price: 15,
-        description:'prub'
-        }
+        name: name,
+        price: price,
+        description: description
+    }
     // First try to find the record
     try {
         const foundItem = await Products.findOne({where: {id:id}});
         if (!foundItem) {
         // Item not found, create a new one
             const newProduct = await Products.create({
-                id:id,
                 name: name,
                 price: price,
                 description: description
@@ -122,14 +126,80 @@ app.put("/products/:id", authUser, isAdmin, async  (req, res) => {
             Products.update(objectToUpdate, { where: { id: id}})
             res.status(200).send({msg: `Product's name was updated`});
         }
-    }catch (error) {
+    } catch (error) {
         res.status(400).send({msg:'Something happened ' + error});  
     }
 });
 
+
+//ORDERS
+//Create order
+app.post("/order", authUser, async (req, res) => {
+    let productsId = req.body.productsId; // array [1,2,3]
+    let address = req.body.address; // string 123 evergreen
+    let payment_method = req.body.payment_method; //'cash', 'credit_card', 'debit_card'
+    let user_id = req.user.id;
+
+    if (productsId == '' || address == '' || payment_method == ''){
+        res.status(400).send({msg:'One or more mandatory fields are empty'});
+    }
+    
+    try {
+        //Que los productos existan
+        //Obtener la info de los productos
+        let productsList = JSON.parse(productsId);
+        let products = await Products.findAll({
+            where: {
+                id: productsList
+            }
+        })
+
+        // Calcular Total 
+        var total = 0.0;
+        for (let i = 0; i < products.length; i++) {
+            let product = products[i];
+            total += parseFloat(product.price);
+        }
+        
+        //Crear la orden
+        let order = await Orders.create({
+            user_id: user_id,
+            payment_method: payment_method,
+            address: address,
+            total: total.toFixed(2)
+        });
+
+        let newOrderId = order.id;
+        //Crear los order_products
+        let newOrderProductList = [];
+        for (let i = 0; i < products.length; i++) {
+            let product = products[i];
+            newOrderProduct =  await OrderProducts.create({
+                product_id: product.id,
+                order_id: newOrderId,
+                name: product.name,
+                price: product.price
+            })
+            newOrderProductList.push(newOrderProduct)
+            
+        }
+   
+        //Regresar la infomacion de la orden
+
+        const responseObject = {
+                                order: order,
+                                products: newOrderProductList
+                               }
+        res.status(200).send({msg:'Order created successfully', res: responseObject});  
+    } catch (error) {
+        res.status(400).send({msg:'Something happened ' + error});  
+    }
+});
+
+
 //USERS
 
-//NEW USER
+//NEW USER Crear usuario
 app.post('/signup', validateSignup, validateUser, async(req, res) => {
 
     const username = req.body.username;
@@ -157,6 +227,7 @@ app.post('/signup', validateSignup, validateUser, async(req, res) => {
 
 /////////////////// Validate Functions
 
+// Valida Login - Si los datos iniciados son correctos para iniciar sesion.
 async function validateLogin(req, res, next){
     const username = req.body.username;
     const email = req.body.email;
@@ -188,6 +259,7 @@ async function validateLogin(req, res, next){
     const result = bcrypt.compare(password, registeredUser.password);
 
     if (result){
+        req.user = registeredUser;
         next();
     } else {
         res.status(400).send({msg:'Password incorrect'});  
@@ -195,6 +267,7 @@ async function validateLogin(req, res, next){
 
 
 }
+// Info correcta para crear usuario nuevo (campos minimos, restricciones de password)
 
 async function validateSignup(req, res, next){
     if (req.body.username == '' || req.body.fullname == '' || req.body.email == '' ||
@@ -209,6 +282,7 @@ async function validateSignup(req, res, next){
     }
 }
 
+// Verificar que no se cree usuario replicado.
 async function validateUser(req, res, next){
     const username = req.body.username;
     const email = req.body.email;
@@ -223,16 +297,16 @@ async function validateUser(req, res, next){
     }
 }
 
-//JWT
+//JWT - Login 
 app.post('/auth', validateLogin, (req, res) =>{
     const username = req.body.username;
-    const password = req.body.password; 
+    const user_id = req.user.id;
     //consu;tar bd y validar que existen tanto username como password
-    const user = {username:username, password:password};
+    const user = {id: user_id};
     const accessToken = generateAccessToken(user);
     res.send({
         message: 'Usuario autenticado',
-        token:accessToken
+        token: accessToken
     });
 
 })
@@ -255,6 +329,7 @@ function authUser(req, res, next) {
     }
 }
 
+// Verifica que el usuario es admin 
 async function isAdmin (req, res, next) {
     const username = req.user.username;
     const user = await Users.findOne({where: {username: username}});
