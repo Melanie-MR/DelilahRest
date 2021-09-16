@@ -29,9 +29,6 @@ const OrderProducts = sequelize.define("order_products",
         },
         price:{
             type:DataTypes.DECIMAL,
-        },
-        quantity:{
-            type: DataTypes.INTEGER,
         }
     }, 
     {

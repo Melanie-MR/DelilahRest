@@ -131,13 +131,13 @@ app.put("/products/:id", authUser, isAdmin, async  (req, res) => {
     }
 });
 
-
 //ORDERS
 //Create order
 app.post("/order", authUser, async (req, res) => {
-    let productsId = req.body.productsId; // array [1,2,3]
+    let productsId = req.body.productsId; // array [1,2], 1
     let address = req.body.address; // string 123 evergreen
     let payment_method = req.body.payment_method; //'cash', 'credit_card', 'debit_card'
+    let description = req.body.description;
     let user_id = req.user.id;
 
     if (productsId == '' || address == '' || payment_method == ''){
@@ -166,7 +166,8 @@ app.post("/order", authUser, async (req, res) => {
             user_id: user_id,
             payment_method: payment_method,
             address: address,
-            total: total.toFixed(2)
+            total: total.toFixed(2),
+            description: description
         });
 
         let newOrderId = order.id;
@@ -191,6 +192,69 @@ app.post("/order", authUser, async (req, res) => {
                                 products: newOrderProductList
                                }
         res.status(200).send({msg:'Order created successfully', res: responseObject});  
+    } catch (error) {
+        res.status(400).send({msg:'Something happened ' + error});  
+    }
+});
+
+////ORDERS
+//Read ALL orders.
+app.get('/orders', authUser, validateRole, async (req, res) => {
+    const is_admin = req.is_admin;
+    const user_id = req.user.id;
+    try {
+        let orders = [];
+        if (is_admin){
+            orders =  await Orders.findAll();
+        } else {
+            orders =  await Orders.findAll({where: {user_id: user_id}});
+        }
+
+        let orderList = [];
+        for (let index = 0; index < orders.length; index++) {
+            let order = orders[index];
+            let order_id = order.id;
+
+            let orderProducts = await OrderProducts.findAll({where: {order_id: order_id}});
+            
+            let orderDetails = {
+                id: order.id,
+                order: order,
+                products: orderProducts
+            }
+            orderList.push(orderDetails);
+        }
+
+        res.status(200).send({msg:'These are all the orders', orderList});  
+    } catch (error) {
+        res.status(400).send({msg:'Something happened ' + error});  
+    }
+});
+
+//Read ONE order.
+app.get('/order/:id',authUser,  validateRole, async (req, res) => {
+    const id = req.params.id;
+    const is_admin = req.is_admin;
+    const user_id = req.user.id;
+    try {
+
+        let order = [];
+        if (is_admin){
+            order =  await Orders.findOne({where: {id:id}});
+        } else {
+            order =  await Orders.findOne({where: {user_id: user_id, id:id}});
+            if (!order){
+                res.status(400).send({msg:'Order does not exists for this user '});
+            }
+        }
+
+        const orderProducts = await OrderProducts.findAll({where: {order_id: id}});
+
+        const orderDetails = {
+            order: order,
+            products: orderProducts
+        }
+        res.status(200).send({msg:`This is the order with the id ${id}`, orderDetails});  
     } catch (error) {
         res.status(400).send({msg:'Something happened ' + error});  
     }
@@ -245,7 +309,6 @@ async function validateLogin(req, res, next){
     } else if (email) {
         emailExists = await Users.findOne({where: {email:email}});
     }
-    
 
     let registeredUser = null;
     if (usernameExists) {
@@ -302,7 +365,7 @@ app.post('/auth', validateLogin, (req, res) =>{
     const username = req.body.username;
     const user_id = req.user.id;
     //consu;tar bd y validar que existen tanto username como password
-    const user = {id: user_id};
+    const user = {id: user_id};// Se crea un objeto con id de usuario para generar el token
     const accessToken = generateAccessToken(user);
     res.send({
         message: 'Usuario autenticado',
@@ -311,17 +374,19 @@ app.post('/auth', validateLogin, (req, res) =>{
 
 })
 
+//Genera el token a partir de un objeto user con id de usuario
 function generateAccessToken(user){
     return jsonwebtoken.sign(user, process.env.SECRET, {expiresIn: '50m'});
 }
 
-// es llamada para verificar que el usuario está logeado
+// es llamada para verificar que el usuario está logeado, es decir el token es válido y no ha expirado
 function authUser(req, res, next) {
     try {
         const token = req.headers.authorization.split(' ')[1];
+        //Si el token es valido, la variable user tiene el objeto guardado en el /auth
         const user = jsonwebtoken.verify(token, process.env.SECRET);
         if (user) {
-            req.user = user;
+            req.user = user;// El objeto de user se guarda en el request que comparte la funcion
             return next();
         }
     } catch(err){
@@ -331,8 +396,8 @@ function authUser(req, res, next) {
 
 // Verifica que el usuario es admin 
 async function isAdmin (req, res, next) {
-    const username = req.user.username;
-    const user = await Users.findOne({where: {username: username}});
+    const id = req.user.id;
+    const user = await Users.findOne({where: {id: id}});
 
     const isAdmin = user.is_admin;
     if (isAdmin == true) { 
@@ -342,17 +407,20 @@ async function isAdmin (req, res, next) {
     }
 }
 
+//Permisos acceso de informacion
 
-////ORDERS
-//Read ALL products.
-app.get('/orders', async (req, res) => {
-    try {
-        const orders =  await Orders.findAll()
-        res.status(200).send({msg:'This is the order number blabla', orders});  
-    } catch (error) {
-        res.status(400).send({msg:'Something happened ' + error});  
+async function validateRole(req, res, next) {
+    const id = req.user.id;
+    const user = await Users.findOne({where: {id: id}});
+
+    if (user) { 
+        const isAdmin = user.is_admin;
+        req.is_admin = isAdmin;
+        return next();
+    } else {
+        res.status(400).send({message:'User does not exist'});
     }
-});
+}
 
 //SERVER
 app.listen(PORT, () => {
