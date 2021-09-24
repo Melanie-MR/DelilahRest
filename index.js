@@ -131,7 +131,7 @@ app.put("/products/:id", authUser, isAdmin, async  (req, res) => {
     }
 });
 
-//ORDERS
+////ORDERS
 //Create order
 app.post("/order", authUser, async (req, res) => {
     let productsId = req.body.productsId; // array [1,2], 1
@@ -197,7 +197,7 @@ app.post("/order", authUser, async (req, res) => {
     }
 });
 
-////ORDERS
+
 //Read ALL orders.
 app.get('/orders', authUser, validateRole, async (req, res) => {
     const is_admin = req.is_admin;
@@ -260,7 +260,54 @@ app.get('/order/:id',authUser,  validateRole, async (req, res) => {
     }
 });
 
+//Update order
+app.put("/order/:id", authUser, isAdmin, async  (req, res) => {  
+    const id = req.params.id;
+    let order_status = req.body.order_status;
 
+    const objectToUpdate = {
+        order_status: order_status
+    }
+    // First try to find the record
+    try {
+        const foundOrder = await Orders.findOne({where: {id:id}});
+        if (foundOrder) {
+            const statuses = ['new', 'confirmed', 'processing', 'sending', 'cancelled', 'delivered'];
+            // Found an item, update it
+            if (order_status && statuses.includes(order_status)){
+                Orders.update(objectToUpdate, { where: { id: id}});
+                res.status(200).send({msg: `Status of order ${id} was updated from ${foundOrder.order_status} to ${order_status}`});
+            } else {
+                const err_msg = order_status ? `Order status ${order_status} is invalid` : 'Order Status is mandatory';
+                res.status(400).send({msg: err_msg});
+            }
+        } else {
+            // Item not found, error
+            res.status(400).send({msg:'Order not found'});
+        }
+    } catch (error) {
+        res.status(400).send({msg:'Something happened ' + error});  
+    }
+});
+
+//Delete order by id
+app.delete("/order/:id", authUser, isAdmin, async (req, res) => { 
+    let id = req.params.id
+    try {
+        const status =  await Orders.destroy({
+            where: {
+               id: id  
+            }
+        }) 
+        if (status == 0) {
+            res.status(404).send({msg: `There is not order with the id ${id} to be eliminated`})
+        } else {
+            res.status(200).send({msg: "Order deleted"});
+        }
+    } catch (error) {
+        res.status(400).send({msg:'Something happened ' + error});  
+    }
+});
 //USERS
 
 //NEW USER Crear usuario
@@ -280,7 +327,7 @@ app.post('/signup', validateSignup, validateUser, async(req, res) => {
             email : email,
             phone_number : phone_number,
             address : address,
-            password : bcrypt.hash(password, 5)
+            password : await bcrypt.hash(password, 5)
         })
         res.status(201).send({msg:'User created successfully', newUser});  
     } catch (error) {
@@ -288,6 +335,15 @@ app.post('/signup', validateSignup, validateUser, async(req, res) => {
     }
 });
 
+//GET INFO USERS
+app.get('/users', authUser, isAdmin, async (req, res) => {
+    try {
+        const users =  await Users.findAll()
+        res.status(200).send({msg:'These are all the users registered', users});  
+    } catch (error) {
+        res.status(400).send({msg:'Something happened ' + error});  
+    }
+});
 
 /////////////////// Validate Functions
 
