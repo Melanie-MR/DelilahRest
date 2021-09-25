@@ -1,7 +1,7 @@
 # DelilahRest Rest API
 This is a Rest API for online orders of a restaurant. You can do CRUD operations to manage the menu, orders and user's information. Also, this app supports Token Based Authentication with JWT. 
 
-##**Technologies:**
+##Technologies:
 
 JavaScript
 NodeJS
@@ -13,7 +13,7 @@ Jsonwebtoken
 Postman for testing
 Swagger (Documentation)
 
-###**How to install?**# Esto es un H1
+###**How to install?** Esto es un H1
 ## Esto es un H2
  Esto es un H3
 #### Esto es un H4
