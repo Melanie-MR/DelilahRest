@@ -6,9 +6,8 @@ const bcrypt = require("bcryptjs");
 const jsonwebtoken = require("jsonwebtoken")
 const body_parser = require("body-parser");
 const cors = require("cors"); 
-const sequelize = require("./config/connection"); //import db connection
+const sequelize = require("./config/connection"); //To import db connection
 const PORT = process.env.PORT || 3000;
-
 
 
 //IMPORTS MODELS
@@ -17,10 +16,6 @@ const Users = require("./models/users");
 const Orders = require("./models/orders");
 const OrderProducts = require("./models/order_products");
 
-//Para probar la conexion de la base de datos sin endpoint
-//const orders = OrderProducts.findAll().then(a =>
-//    console.log("as",a)
-//);
 
 //APP
 const app = express();
@@ -29,8 +24,10 @@ app.use(cors());
 app.use(body_parser.urlencoded({ extended: false }));
 app.use(body_parser.json());
 
-//ENDPOINTS
 
+///////////////////ENDPOINTS///////////////////
+
+//////PRODUCTS
 //Read ALL products.
 app.get('/products', authUser, async (req, res) => {
     try {
@@ -131,10 +128,10 @@ app.put("/products/:id", authUser, isAdmin, async  (req, res) => {
     }
 });
 
-////ORDERS
+//////ORDERS
 //Create order
 app.post("/order", authUser, async (req, res) => {
-    let productsId = req.body.productsId; // array [1,2], 1
+    let productsId = req.body.productsId; // array [1,2]
     let address = req.body.address; // string 123 evergreen
     let payment_method = req.body.payment_method; //'cash', 'credit_card', 'debit_card'
     let description = req.body.description;
@@ -145,8 +142,7 @@ app.post("/order", authUser, async (req, res) => {
     }
     
     try {
-        //Que los productos existan
-        //Obtener la info de los productos
+        //If there are products in the list, obtein the information
         let productsList = JSON.parse(productsId);
         let products = await Products.findAll({
             where: {
@@ -154,14 +150,14 @@ app.post("/order", authUser, async (req, res) => {
             }
         })
 
-        // Calcular Total 
+        // To calculate the total price of the order
         var total = 0.0;
         for (let i = 0; i < products.length; i++) {
             let product = products[i];
             total += parseFloat(product.price);
         }
         
-        //Crear la orden
+        //To create the order
         let order = await Orders.create({
             user_id: user_id,
             payment_method: payment_method,
@@ -171,7 +167,7 @@ app.post("/order", authUser, async (req, res) => {
         });
 
         let newOrderId = order.id;
-        //Crear los order_products
+        //To create order_products in order to be able to read it.
         let newOrderProductList = [];
         for (let i = 0; i < products.length; i++) {
             let product = products[i];
@@ -184,9 +180,8 @@ app.post("/order", authUser, async (req, res) => {
             newOrderProductList.push(newOrderProduct)
             
         }
-   
-        //Regresar la infomacion de la orden
 
+        //Return order information
         const responseObject = {
                                 order: order,
                                 products: newOrderProductList
@@ -231,7 +226,7 @@ app.get('/orders', authUser, validateRole, async (req, res) => {
     }
 });
 
-//Read ONE order.
+//Read ONE order
 app.get('/order/:id',authUser,  validateRole, async (req, res) => {
     const id = req.params.id;
     const is_admin = req.is_admin;
@@ -268,12 +263,12 @@ app.put("/order/:id", authUser, isAdmin, async  (req, res) => {
     const objectToUpdate = {
         order_status: order_status
     }
-    // First try to find the record
+    // to find the order
     try {
         const foundOrder = await Orders.findOne({where: {id:id}});
         if (foundOrder) {
             const statuses = ['new', 'confirmed', 'processing', 'sending', 'cancelled', 'delivered'];
-            // Found an item, update it
+            // Found the order, update status
             if (order_status && statuses.includes(order_status)){
                 Orders.update(objectToUpdate, { where: { id: id}});
                 res.status(200).send({msg: `Status of order ${id} was updated from ${foundOrder.order_status} to ${order_status}`});
@@ -282,7 +277,7 @@ app.put("/order/:id", authUser, isAdmin, async  (req, res) => {
                 res.status(400).send({msg: err_msg});
             }
         } else {
-            // Item not found, error
+            // Order not found, error
             res.status(400).send({msg:'Order not found'});
         }
     } catch (error) {
@@ -308,9 +303,10 @@ app.delete("/order/:id", authUser, isAdmin, async (req, res) => {
         res.status(400).send({msg:'Something happened ' + error});  
     }
 });
-//USERS
 
-//NEW USER Crear usuario
+//////USERS
+
+//Sign up new user
 app.post('/signup', validateSignup, validateUser, async(req, res) => {
 
     const username = req.body.username;
@@ -327,7 +323,7 @@ app.post('/signup', validateSignup, validateUser, async(req, res) => {
             email : email,
             phone_number : phone_number,
             address : address,
-            password : await bcrypt.hash(password, 5)
+            password : await bcrypt.hash(password, 5) //password encrypted
         })
         res.status(201).send({msg:'User created successfully', newUser});  
     } catch (error) {
@@ -335,7 +331,7 @@ app.post('/signup', validateSignup, validateUser, async(req, res) => {
     }
 });
 
-//GET INFO USERS
+//Get users information
 app.get('/users', authUser, isAdmin, async (req, res) => {
     try {
         const users =  await Users.findAll()
@@ -345,9 +341,51 @@ app.get('/users', authUser, isAdmin, async (req, res) => {
     }
 });
 
-/////////////////// Validate Functions
+//To obtain information about one specific user. Admin can access to any user's information. A user can only access to their own info.
+app.get('/user/:id',authUser,  validateRole, async (req, res) => {
+    const id = req.params.id;
+    const is_admin = req.is_admin;
+    const user_id = req.user.id;
+    //const currentUser = {id: user_id};// Se crea un objeto con id de usuario para generar el token
 
-// Valida Login - Si los datos iniciados son correctos para iniciar sesion.
+    try {
+        let userInfo = [];
+        if (is_admin){
+            userInfo =  await Users.findOne({where: {id:id}});
+            if (!userInfo){
+                res.status(400).send({msg:'User does not exists for this id'});
+            }
+            res.status(200).send({msg:`This is the user's information of user with id ${id}`, userInfo}); 
+        } else if (id == user_id) {
+                userInfo =  await Users.findOne({where: {id:id}});
+                res.status(200).send({msg:'This is your information', userInfo}); 
+            }else{
+                res.status(400).send({msg:'You dont have allowed to acces to this information'});
+            }
+    } catch (error) {
+        res.status(400).send({msg:'Something happened ' + error});  
+    }
+});
+
+
+
+//JWT - Login with token
+app.post('/auth', validateLogin, (req, res) =>{
+    const username = req.body.username;
+    const user_id = req.user.id;
+    //consu;tar bd y validar que existen tanto username como password
+    const user = {id: user_id};// Se crea un objeto con id de usuario para generar el token
+    const accessToken = generateAccessToken(user);
+    res.send({
+        message: 'Usuario autenticado',
+        token: accessToken
+    });
+
+})
+
+///////////////////VALIDATE FUNCTIONS/////////////////// 
+
+//Validate login - correct information to user login
 async function validateLogin(req, res, next){
     const username = req.body.username;
     const email = req.body.email;
@@ -386,7 +424,7 @@ async function validateLogin(req, res, next){
 
 
 }
-// Info correcta para crear usuario nuevo (campos minimos, restricciones de password)
+//Validate singup- valid information to create a new user (mandatory fields and password restriction)
 
 async function validateSignup(req, res, next){
     if (req.body.username == '' || req.body.fullname == '' || req.body.email == '' ||
@@ -401,7 +439,7 @@ async function validateSignup(req, res, next){
     }
 }
 
-// Verificar que no se cree usuario replicado.
+//To verify if user is not already registered. 
 async function validateUser(req, res, next){
     const username = req.body.username;
     const email = req.body.email;
@@ -416,26 +454,12 @@ async function validateUser(req, res, next){
     }
 }
 
-//JWT - Login 
-app.post('/auth', validateLogin, (req, res) =>{
-    const username = req.body.username;
-    const user_id = req.user.id;
-    //consu;tar bd y validar que existen tanto username como password
-    const user = {id: user_id};// Se crea un objeto con id de usuario para generar el token
-    const accessToken = generateAccessToken(user);
-    res.send({
-        message: 'Usuario autenticado',
-        token: accessToken
-    });
-
-})
-
-//Genera el token a partir de un objeto user con id de usuario
+//To generate the token from a user object with user id
 function generateAccessToken(user){
     return jsonwebtoken.sign(user, process.env.SECRET, {expiresIn: '50m'});
 }
 
-// es llamada para verificar que el usuario está logeado, es decir el token es válido y no ha expirado
+//To verify that user is login (token valid + isn't expired)
 function authUser(req, res, next) {
     try {
         const token = req.headers.authorization.split(' ')[1];
@@ -450,7 +474,7 @@ function authUser(req, res, next) {
     }
 }
 
-// Verifica que el usuario es admin 
+// To verify if user is admin
 async function isAdmin (req, res, next) {
     const id = req.user.id;
     const user = await Users.findOne({where: {id: id}});
@@ -463,7 +487,7 @@ async function isAdmin (req, res, next) {
     }
 }
 
-//Permisos acceso de informacion
+//Permit to acces information
 
 async function validateRole(req, res, next) {
     const id = req.user.id;
