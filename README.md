@@ -13,7 +13,12 @@ Jsonwebtoken
 Postman for testing
 Swagger (Documentation)
 
-###**How to install?**
+###**How to install?**# Esto es un H1
+## Esto es un H2
+ Esto es un H3
+#### Esto es un H4
+
+
 Once that you have the files, open it in your favorite editor.
 In your terminal, install the necessary dependencies running the command:
 
@@ -27,7 +32,7 @@ Finally, executed the followind command:
 
 *npm run dev*
 
-One mor thing...
+One more thing...
 
 Use the file delilah.sql to make the Data Base.
 
