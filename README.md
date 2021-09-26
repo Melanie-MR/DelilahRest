@@ -12,7 +12,7 @@ This is a Rest API for online orders of a restaurant. You can do CRUD operations
 * Postman for testing
 * Swagger (Documentation)
 
-### How to install?
+## How to install?
 
 Once that you have the files, open it in your favorite editor.
 In your terminal, install the necessary dependencies running the command:
