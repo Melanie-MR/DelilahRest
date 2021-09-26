@@ -23,7 +23,7 @@ then,
 
 *npm install express sequelize mysql2 body-parser dotenv cors jsonwebtoken bcryptjs --save*
 
-Finally, executed the followind command: 
+Finally, execute the following command: 
 
 *npm run dev*
 
