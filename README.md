@@ -4,13 +4,13 @@ This is a Rest API for online orders of a restaurant. You can do CRUD operations
 ## Technologies:
 * JavaScript
 * NodeJS
-Express
-Sequelize
-MySQL
-Bcryptjs
-Jsonwebtoken
-Postman for testing
-Swagger (Documentation)
+* Express
+* Sequelize
+* MySQL
+* Bcryptjs
+* Jsonwebtoken
+* Postman for testing
+* Swagger (Documentation)
 
 ### How to install?
 
