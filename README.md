@@ -2,8 +2,8 @@
 This is a Rest API for online orders of a restaurant. You can do CRUD operations to manage the menu, orders and user's information. Also, this app supports Token Based Authentication with JWT. 
 
 ## Technologies:
-JavaScript
-NodeJS
+* JavaScript
+* NodeJS
 Express
 Sequelize
 MySQL
