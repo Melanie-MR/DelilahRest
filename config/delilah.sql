@@ -46,3 +46,12 @@ CREATE TABLE IF NOT EXISTS `order_products` (
     FOREIGN KEY (product_id) REFERENCES `products`(`id`),
     FOREIGN KEY (order_id) REFERENCES `orders`(`id`)
 ) DEFAULT CHARSET = UTF8
+
+INSERT INTO products (name, price, description) VALUES ('Arepa with pulled meat', '15', 'A venezuelan corn bread');
+INSERT INTO products (name, price, description) VALUES ('Hallaca', '20', 'A venezuelan tamale');
+INSERT INTO products (name, price, description) VALUES ('Papelon with lemon', '5', 'Refreshing drink with cane sugar and lemon');
+INSERT INTO products (name, price, description) VALUES ('Tequenos', '12', 'The best mozzarella fingers');
+INSERT INTO products (name, price, description) VALUES ('Cachapa', '20', 'Corn base pancake with cheese');
+
+INSERT INTO users (username, fullname, email, phone_number, address, password, is_admin) VALUES ('simon','Simon Diaz', 'simon-diaz@gmail.com', 'Calle Tapipa', '12345678',  'simoncito', FALSE);
+INSERT INTO users (username, fullname, email, phone_number, address, password, is_admin) VALUES ('soledad','Soledad Bravo', 'sole-bravo@gmail.com', 'Calle Charallave', '87654321',  'sole', TRUE);
