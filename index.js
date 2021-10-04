@@ -121,7 +121,7 @@ app.put("/products/:id", authUser, isAdmin, async  (req, res) => {
         } else{
         // Found an item, update it
             Products.update(objectToUpdate, { where: { id: id}})
-            res.status(200).send({msg: `Product's name was updated`});
+            res.status(200).send({msg: `Product was updated`});
         }
     } catch (error) {
         res.status(400).send({msg:'Something happened ' + error});  
@@ -138,7 +138,7 @@ app.post("/order", authUser, async (req, res) => {
     let user_id = req.user.id;
 
     if (productsId == '' || address == '' || payment_method == ''){
-        res.status(400).send({msg:'One or more mandatory fields are empty'});
+        res.status(404).send({msg:'One or more mandatory fields are empty'});
     }
     
     try {
@@ -239,7 +239,7 @@ app.get('/order/:id',authUser,  validateRole, async (req, res) => {
         } else {
             order =  await Orders.findOne({where: {user_id: user_id, id:id}});
             if (!order){
-                res.status(400).send({msg:'Order does not exists for this user '});
+                res.status(403).send({msg:'Order does not exists for this user '});
             }
         }
 
@@ -353,14 +353,14 @@ app.get('/user/:id',authUser,  validateRole, async (req, res) => {
         if (is_admin){
             userInfo =  await Users.findOne({where: {id:id}});
             if (!userInfo){
-                res.status(400).send({msg:'User does not exists for this id'});
+                res.status(403).send({msg:'User does not exists for this id'});
             }
             res.status(200).send({msg:`This is the user's information of user with id ${id}`, userInfo}); 
         } else if (id == user_id) {
                 userInfo =  await Users.findOne({where: {id:id}});
-                res.status(200).send({msg:'This is your information', userInfo}); 
+                res.status(202).send({msg:'This is your information', userInfo}); 
             }else{
-                res.status(400).send({msg:'You dont have allowed to acces to this information'});
+                res.status(401).send({msg:'You dont have allowed to acces to this information'});
             }
     } catch (error) {
         res.status(400).send({msg:'Something happened ' + error});  
@@ -377,7 +377,7 @@ app.post('/auth', validateLogin, (req, res) =>{
     const user = {id: user_id};// Se crea un objeto con id de usuario para generar el token
     const accessToken = generateAccessToken(user);
     res.send({
-        message: 'Usuario autenticado',
+        message: 'User authenticated',
         token: accessToken
     });
 
