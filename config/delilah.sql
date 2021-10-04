@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     phone_number INT NOT NULL,
     address VARCHAR(500) NOT NULL,
     password VARCHAR(50) NOT NULL,
-    is_admin BOOLEAN
+    is_admin tinyint(1) DEFAULT '0'
 ) DEFAULT CHARSET = UTF8
 
 /*Orders*/
@@ -53,5 +53,5 @@ INSERT INTO products (name, price, description) VALUES ('Papelon with lemon', '5
 INSERT INTO products (name, price, description) VALUES ('Tequenos', '12', 'The best mozzarella fingers');
 INSERT INTO products (name, price, description) VALUES ('Cachapa', '20', 'Corn base pancake with cheese');
 
-INSERT INTO users (username, fullname, email, phone_number, address, password, is_admin) VALUES ('simon','Simon Diaz', 'simon-diaz@gmail.com', 'Calle Tapipa', '12345678',  'simoncito', FALSE);
-INSERT INTO users (username, fullname, email, phone_number, address, password, is_admin) VALUES ('soledad','Soledad Bravo', 'sole-bravo@gmail.com', 'Calle Charallave', '87654321',  'sole', TRUE);
+INSERT INTO users (username, fullname, email, phone_number, address, password, is_admin) VALUES ('simon','Simon Diaz', 'simon-diaz@gmail.com', 6506502020, 'Calle Tapipa', '12345678', 0);
+INSERT INTO users (username, fullname, email, phone_number, address, password, is_admin) VALUES ('soledad','Soledad Bravo', 'sole-bravo@gmail.com', 6506205863, 'Calle Charallave', '87654321',  'sole', 1);
