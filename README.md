@@ -28,7 +28,7 @@ Finally, execute the following command:
 *npm run dev*
 
 #### One more thing...
-Use the file delilah.sql to make the Data Base.
+Use the file delilah.sql to make the Data Base. I recommend using Postman to test it.
 
 You have all set! 
 Have fun!:)
