@@ -14,7 +14,16 @@ This is a Rest API for online orders of a restaurant. You can do CRUD operations
 
 ## How to install?
 
+You can clone the repository from here. Go to the CODE button in the roght and click on download zip.
 Once that you have the files, open it in your favorite editor.
+*You must modify the file config/connection.js to make it match with your enviroment. Take in account that in the file .env you can adjust the variables used in the file config/connection.js. For example: DB_NAME, DB_HOST, DB_PORT...*
+
+## DATA BASE:
+
+Use the delilah.sql file to import it into your Database client, it will provide the entire structure. I recommend using Postman to test it.
+
+
+## Dependencies:
 In your terminal, install the necessary dependencies running the command:
 
 *npm init --yes*
@@ -26,9 +35,6 @@ then,
 Finally, execute the following command: 
 
 *npm run dev*
-
-#### One more thing...
-Use the file delilah.sql to make the Data Base. I recommend using Postman to test it.
 
 You have all set! 
 Have fun!:)
