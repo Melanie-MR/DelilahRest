@@ -41,8 +41,7 @@ Execute the following command:
 
 *npm run dev*
 
-You have all set! Try the endpoints in your Postman collection. 
-Have fun!:)
+You have all set! Try the endpoints in your Postman collection and have fun! :)
 
 ## Documentation:
 The documentation is in *delilah-doc.yaml* file. I followed the OpenAPI Specification provided by [Swagger](https://swagger.io/specification/):
