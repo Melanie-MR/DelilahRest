@@ -20,12 +20,81 @@ tags:
   description: Orders operations
 - name: users
   description: Users operations
-- name: order_products
-  description: Order products's details 
   
 paths:
   /products:
+    post:
+      tags:
+      - products
+      summary: Create a new product
+      requestBody:
+        description: The admin can add a new product to the menu available. 
+        content:
+          application/json:
+            schema:
+              required:
+              - name
+              - price
+              type: object
+              properties:
+                  id:
+                    type: integer
+                    format: int64
+                  name:
+                    type: string
+                    example: "Arepa"
+                  price:
+                    type: number
+                    example: 20.5
+                  description:
+                    type: string
+                    example: "A venezuelan corn bread"
+      responses:
+        200:
+          description: Product created successfully
+        400:
+          description: Something happened + error
+      security:
+        - bearerAuth: []
+    get:
+      tags:
+      - products
+      summary: Get the whole list of products
+      description: All the authUsers can obtain all the products of the menu
+      responses:
+        200:
+          description: These are all the products + products
+        400:
+          description: Something happened + error
+      security:
+        - bearerAuth: []
+  /products/{id}:
+    parameters:
+        - name: id
+          in: path
+          description: Id of the product that you need to get
+          required: true
+          schema:
+            type: integer
+            format: int64
+    get:
+      security:
+      - bearerAuth: []
+      tags:
+      - products
+      summary: Returns a single product by ID
+      description: All the authUsers can get the information of a specific product by id
+      
+      responses:
+        200:
+          description: This is the product with the id "id" + product
+        400:
+          description: Something happened + error
+        404:
+          description: There is not products with this id "id"
     put:
+      security:
+      - bearerAuth: []
       tags:
       - products
       summary: To update the menu
@@ -49,659 +118,297 @@ paths:
                   description:
                     type: string
                     example: "A venezuelan corn bread"
-        required: true
       responses:
         200:
-          description: Product's name was updated
+          description: Product was updated
           content: {}
         400:
-          description: Something happened
+          description: Something happened + error
           content: {}
+          
+    delete:
       security:
-        - bearerAuth: []
-      x-codegen-request-body-name: body
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-    post:
+      - bearerAuth: []
       tags:
-      - dishes
-      summary: Add a new dish to the restaurant
-      operationId: addDish
+      - products
+      summary: Just admin can delete a product
+      parameters:
+      - name: id
+        in: path
+        description: Product id to delete
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: DELETED
+        400:
+          description: Something happened + error
+        404:
+          description: There is not products with the id "id" to be eliminated
+
+  /orders:  
+    get:
+      security:
+      - bearerAuth: []
+      tags:
+      - orders
+      summary: Get all the orders
+      description: Admin can get all the list of orders
+      responses:
+        200:
+          description: These are all the products + products
+        400:
+          description: Something happened + error
+
+  /order:
+    post:
+      security:
+      - bearerAuth: []
+      tags:
+      - orders
+      summary: Create a order
+      description: Create a new order
       requestBody:
-        description: Dish object that needs to be added to the restaurant
+        description: All authUsers can create an order using the productsId
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Menu'
-          application/xml:
-            schema:
-              $ref: '#/components/schemas/Menu'
-        required: true
-      responses:
-        405:
-          description: Invalid input
-          content: {}
-      x-codegen-request-body-name: body
-  /pet/findByStatus:
-    get:
-      tags:
-      - pet
-      summary: Finds Pets by status
-      description: Multiple status values can be provided with comma separated strings
-      operationId: findPetsByStatus
-      parameters:
-      - name: status
-        in: query
-        description: Status values that need to be considered for filter
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: array
-          items:
-            type: string
-            default: available
-            enum:
-            - available
-            - pending
-            - sold
-      responses:
-        200:
-          description: successful operation
-          content:
-            application/xml:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Menu'
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Menu'
-        400:
-          description: Invalid status value
-          content: {}
-
-  /pet/findByTags:
-    get:
-      tags:
-      - pet
-      summary: Finds Pets by tags
-      description: Muliple tags can be provided with comma separated strings. Use         tag1,
-        tag2, tag3 for testing.
-      operationId: findPetsByTags
-      parameters:
-      - name: tags
-        in: query
-        description: Tags to filter by
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: array
-          items:
-            type: string
-      responses:
-        200:
-          description: successful operation
-          content:
-            application/xml:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Menu'
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Menu'
-        400:
-          description: Invalid tag value
-          content: {}
-      deprecated: true
-
-  /pet/{petId}:
-    get:
-      tags:
-      - pet
-      summary: Find pet by ID
-      description: Returns a single pet
-      operationId: getPetById
-      parameters:
-      - name: petId
-        in: path
-        description: ID of pet to return
-        required: true
-        schema:
-          type: integer
-          format: int64
-      responses:
-        200:
-          description: successful operation
-          content:
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Menu'
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Menu'
-        400:
-          description: Invalid ID supplied
-          content: {}
-        404:
-          description: Pet not found
-          content: {}
-
-    post:
-      tags:
-      - pet
-      summary: Updates a pet in the store with form data
-      operationId: updatePetWithForm
-      parameters:
-      - name: petId
-        in: path
-        description: ID of pet that needs to be updated
-        required: true
-        schema:
-          type: integer
-          format: int64
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
+              required:
+              - productsId
+              - payment_method
+              - address
+              type: object
               properties:
-                name:
+                productsId:
+                  type: array
+                  items:
+                    type: integer
+                    example: [3, 1]
+                payment_method:
                   type: string
-                  description: Updated name of the pet
-                status:
+                  example: "cash"
+                address:
                   type: string
-                  description: Updated status of the pet
+                  example: "Charallave 123"
+                total: 
+                  type: number
+                  example: 203.5
+                description:
+                  type: string
+                  example: "Any information that the user wants to add to their order"
       responses:
-        405:
-          description: Invalid input
+        200:
+          description: Order created successfully + responseObject
+        400:
+          description: Something happened + error
+        404:
+          description: One or more mandatory fields are empty
+          
+  /order/{id}:
+    parameters:
+        - name: id
+          in: path
+          description: ID of the order that needs to be operated
+          required: true
+          schema:
+            type: integer
+            format: int64
+    get:
+      security:
+      - bearerAuth: []
+      tags:
+      - orders
+      summary: Find an order by ID
+      description: AuthUsers can get a specific order by id. Admin can acces to all IDs, authUsers just they own orders. This operation will bring the order and product's details.
+      responses:
+        200:
+          description: This is the order with the id 'id' + orderDetails
+        400:
+          description: Something happened + error
+        403:
+          description: Order does not exists for this user
+    put:
+      security:
+      - bearerAuth: []
+      tags:
+      - orders
+      summary: To update the order
+      requestBody:
+        description: The admin can change the order's details and the status using the ID of the product
+        content:
+          application/json:
+            schema:
+              required:
+              - order_status
+              type: object
+              items:
+                properties:
+                  order_status:
+                    type: string
+                    description: order status
+                    enum:
+                    - new
+                    - confirmed
+                    - processing
+                    - sending
+                    - cancelled
+                    - delivered
+                  user_id:
+                    type: integer
+                    example: 5
+                  payment_method:
+                    type: string
+                    description: payment method
+                    enum:
+                    - cash
+                    - credit_card
+                    - debit_card
+                  address: 
+                    type: string
+                    example: "Laurel 123"
+      responses:
+        200:
+          description: Order was updated
+        400:
+          description: Something happened + error
           content: {}
+        
     delete:
       tags:
-      - pet
-      summary: Deletes a pet
-      operationId: deletePet
-      parameters:
-      - name: api_key
-        in: header
-        schema:
-          type: string
-      - name: petId
-        in: path
-        description: Pet id to delete
-        required: true
-        schema:
-          type: integer
-          format: int64
+      - orders
+      summary: Delete order by ID
+      description: Just admin can delete an order
       responses:
+        200:
+          description: Order deleted
         400:
-          description: Invalid ID supplied
-          content: {}
+          description: Something happened + error
         404:
-          description: Pet not found
-          content: {}
-
-  /pet/{petId}/uploadImage:
+          description: There is not products with the id "id" to be eliminated
+  /users/signup:
     post:
       tags:
-      - pet
-      summary: uploads an image
-      operationId: uploadFile
-      parameters:
-      - name: petId
-        in: path
-        description: ID of pet to update
-        required: true
-        schema:
-          type: integer
-          format: int64
+      - users
+      summary: Create user
+      description: This is for create a new account as an user
       requestBody:
+        description: Created user object
         content:
-          multipart/form-data:
+          application/json:
             schema:
+              required:
+              - username
+              - address
+              - password
+              type: object
               properties:
-                additionalMetadata:
-                  type: string
-                  description: Additional data to pass to server
-                file:
-                  type: string
-                  description: file to upload
-                  format: binary
+                  username:
+                    type: string
+                    example: "simon"
+                  fullname:
+                    type: string
+                    example: "Simon Diaz"
+                  email:
+                    type: string
+                    example: "simon-diaz@gmail.com"  
+                  phone_number:
+                    type: integer
+                    example: 6506807845
+                  address:
+                      type: string
+                      example: "Tapipa 123"
+                  password:
+                    type: string
+                    minLength: 8
+                  is_admin: 
+                    type: boolean
+                    example: TRUE
+        required: true
       responses:
-        200:
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-
-  /store/inventory:
+        201:
+          description: User created successfully
+        400:
+          description: Something happened + error
     get:
+      security:
+        - bearerAuth: []
       tags:
-      - store
-      summary: Returns pet inventories by status
-      description: Returns a map of status codes to quantities
-      operationId: getInventory
+      - users
+      summary: Get the list of users
+      description: Only admin can obtain all the user's information
       responses:
         200:
-          description: successful operation
+          description: These are all the users registered + users
+        400:
+          description: Something happened + error
+          
+  /user/{id}: 
+    parameters:
+          - name: id
+            in: path
+            description: Id of the product that you need to operate with
+            required: true
+            schema:
+              type: integer
+              format: int64
+    get:
+      security:
+      - bearerAuth: []
+      tags:
+      - users
+      summary: Returns a single user's information by userID
+      description: AuthUsers can get user information by id. Admin can acces to all user, authUsers only can acces to they own information
+      responses:
+        200:
+          description: This is the users information of user with id 'id' + userInfo
+        202:
+          description: This is your information
+        400:
+          description: Something happened + error
+        401:
+          description: You dont have allowed to acces to this information
+        403:
+          description: User does not exists with this id
+  
+  /auth:
+    post:
+      tags:
+      - users
+      summary: To login with a token.  
+      description: You must add information about the user to login
+      requestBody:
+        description: details to login
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: "simon" 
+                password:
+                      type: string
+                      minLength: 8
+        required: true
+      responses:
+        200:
+          description: OK
           content:
             application/json:
               schema:
                 type: object
-                additionalProperties:
-                  type: integer
-                  format: int32
-
-  /store/order:
-    post:
-      tags:
-      - store
-      summary: Place an order for a pet
-      operationId: placeOrder
-      requestBody:
-        description: order placed for purchasing the pet
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/Order'
-        required: true
-      responses:
-        200:
-          description: successful operation
-          content:
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Order'
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Order'
-        400:
-          description: Invalid Order
-          content: {}
-      x-codegen-request-body-name: body
-  /store/order/{orderId}:
-    get:
-      tags:
-      - store
-      summary: Find purchase order by ID
-      description: For valid response try integer IDs with value >= 1 and <= 10.         Other
-        values will generated exceptions
-      operationId: getOrderById
-      parameters:
-      - name: orderId
-        in: path
-        description: ID of pet that needs to be fetched
-        required: true
-        schema:
-          maximum: 10.0
-          minimum: 1.0
-          type: integer
-          format: int64
-      responses:
-        200:
-          description: successful operation
-          content:
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Order'
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Order'
-        400:
-          description: Invalid ID supplied
-          content: {}
-        404:
-          description: Order not found
-          content: {}
-    delete:
-      tags:
-      - store
-      summary: Delete purchase order by ID
-      description: For valid response try integer IDs with positive integer value.         Negative
-        or non-integer values will generate API errors
-      operationId: deleteOrder
-      parameters:
-      - name: orderId
-        in: path
-        description: ID of the order that needs to be deleted
-        required: true
-        schema:
-          minimum: 1.0
-          type: integer
-          format: int64
-      responses:
-        400:
-          description: Invalid ID supplied
-          content: {}
-        404:
-          description: Order not found
-          content: {}
-  /user:
-    post:
-      tags:
-      - user
-      summary: Create user
-      description: This can only be done by the logged in user.
-      operationId: createUser
-      requestBody:
-        description: Created user object
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/User'
-        required: true
-      responses:
-        default:
-          description: successful operation
-          content: {}
-      x-codegen-request-body-name: body
-  /user/createWithArray:
-    post:
-      tags:
-      - user
-      summary: Creates list of users with given input array
-      operationId: createUsersWithArrayInput
-      requestBody:
-        description: List of user object
-        content:
-          '*/*':
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/User'
-        required: true
-      responses:
-        default:
-          description: successful operation
-          content: {}
-      x-codegen-request-body-name: body
-  /user/createWithList:
-    post:
-      tags:
-      - user
-      summary: Creates list of users with given input array
-      operationId: createUsersWithListInput
-      requestBody:
-        description: List of user object
-        content:
-          '*/*':
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/User'
-        required: true
-      responses:
-        default:
-          description: successful operation
-          content: {}
-      x-codegen-request-body-name: body
-  /user/login:
-    get:
-      tags:
-      - user
-      summary: Logs user into the system
-      operationId: loginUser
-      parameters:
-      - name: username
-        in: query
-        description: The user name for login
-        required: true
-        schema:
-          type: string
-      - name: password
-        in: query
-        description: The password for login in clear text
-        required: true
-        schema:
-          type: string
-      responses:
-        200:
-          description: successful operation
-          headers:
-            X-Rate-Limit:
-              description: calls per hour allowed by the user
-              schema:
-                type: integer
-                format: int32
-            X-Expires-After:
-              description: date in UTC when token expires
-              schema:
-                type: string
-                format: date-time
-          content:
-            application/xml:
-              schema:
-                type: string
-            application/json:
-              schema:
-                type: string
-        400:
-          description: Invalid username/password supplied
-          content: {}
-  /user/logout:
-    get:
-      tags:
-      - user
-      summary: Logs out current logged in user session
-      operationId: logoutUser
-      responses:
-        default:
-          description: successful operation
-          content: {}
-  /user/{username}:
-    get:
-      tags:
-      - user
-      summary: Get user by user name
-      operationId: getUserByName
-      parameters:
-      - name: username
-        in: path
-        description: 'The name that needs to be fetched. Use user1 for testing. '
-        required: true
-        schema:
-          type: string
-      responses:
-        200:
-          description: successful operation
-          content:
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/User'
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        400:
-          description: Invalid username supplied
-          content: {}
-        404:
-          description: User not found
-          content: {}
-    put:
-      tags:
-      - user
-      summary: Updated user
-      description: This can only be done by the logged in user.
-      operationId: updateUser
-      parameters:
-      - name: username
-        in: path
-        description: name that need to be updated
-        required: true
-        schema:
-          type: string
-      requestBody:
-        description: Updated user object
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/User'
-        required: true
-      responses:
-        400:
-          description: Invalid user supplied
-          content: {}
-        404:
-          description: User not found
-          content: {}
-      x-codegen-request-body-name: body
-    delete:
-      tags:
-      - user
-      summary: Delete user
-      description: This can only be done by the logged in user.
-      operationId: deleteUser
-      parameters:
-      - name: username
-        in: path
-        description: The name that needs to be deleted
-        required: true
-        schema:
-          type: string
-      responses:
-        400:
-          description: Invalid username supplied
-          content: {}
-        404:
-          description: User not found
-          content: {}
+                properties:
+                    message:
+                      type: string
+                      example: User authenticated
+                    token:
+                      type: string
+                      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXV"
 components:
   securitySchemes:
     bearerAuth:            
       type: http
       scheme: bearer
       bearerFormat: JWT
-  schemas:
-    Order:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        petId:
-          type: integer
-          format: int64
-        quantity:
-          type: integer
-          format: int32
-        shipDate:
-          type: string
-          format: date-time
-        status:
-          type: string
-          description: Order Status
-          enum:
-          - placed
-          - approved
-          - delivered
-        complete:
-          type: boolean
-          default: false
-      xml:
-        name: Order
-    Category:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-      xml:
-        name: Category
-    User:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        username:
-          type: string
-        firstName:
-          type: string
-        lastName:
-          type: string
-        email:
-          type: string
-        password:
-          type: string
-        phone:
-          type: string
-        userStatus:
-          type: integer
-          description: User Status
-          format: int32
-      xml:
-        name: User
-    Tag:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-      xml:
-        name: Tag
-    Menu:
-      required:
-      - name
-      - photoUrls
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        category:
-          $ref: '#/components/schemas/Category'
-        name:
-          type: string
-          example: doggie
-        photoUrls:
-          type: array
-          xml:
-            name: photoUrl
-            wrapped: true
-          items:
-            type: string
-        tags:
-          type: array
-          xml:
-            name: tag
-            wrapped: true
-          items:
-            $ref: '#/components/schemas/Tag'
-        status:
-          type: string
-          description: pet status in the store
-          enum:
-          - available
-          - pending
-          - sold
-      xml:
-        name: Pet
-    ApiResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-          format: int32
-        type:
-          type: string
-        message:
-          type: string
-
