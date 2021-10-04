@@ -14,7 +14,7 @@ This is a Rest API for online orders of a restaurant. You can do CRUD operations
 
 ## How to install?
 
-*PLEASE READ UNTIL THE BOTTOM TO INSTALL IT PROPERLY
+*PLEASE READ UNTIL THE BOTTOM TO INSTALL IT PROPERLY*
 
 You can clone the repository from here. Go to the CODE button in the right and click on download zip.
 Once that you have the files, open it in your favorite editor.
