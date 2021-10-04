@@ -287,7 +287,21 @@ paths:
           description: Something happened + error
         404:
           description: There is not products with the id "id" to be eliminated
-  /users/signup:
+  
+  /users:
+    get:
+        security:
+          - bearerAuth: []
+        tags:
+        - users
+        summary: Get the list of users
+        description: Only admin can obtain all the user's information
+        responses:
+          200:
+            description: These are all the users registered + users
+          400:
+            description: Something happened + error
+  /signup:
     post:
       tags:
       - users
@@ -331,19 +345,7 @@ paths:
           description: User created successfully
         400:
           description: Something happened + error
-    get:
-      security:
-        - bearerAuth: []
-      tags:
-      - users
-      summary: Get the list of users
-      description: Only admin can obtain all the user's information
-      responses:
-        200:
-          description: These are all the users registered + users
-        400:
-          description: Something happened + error
-          
+    
   /user/{id}: 
     parameters:
           - name: id
