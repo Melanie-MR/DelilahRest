@@ -22,7 +22,7 @@ You must modify config/connection.js to make it match with your enviroment. Take
 
 ## Data Base:
 
-Use the delilah.sql file to import it into your Database client, it will provide the entire structure. I recommend using Postman to test it.
+Use the delilah.sql file to import it into your Database client, it will provide the entire structure. I recommend using Postman to test the endpoints.
 
 
 ## Dependencies:
